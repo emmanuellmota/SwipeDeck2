@@ -5,8 +5,12 @@
         <attr name="opacity_end" format="float"/>
         <attr name="rotation_degrees" format="float"/>
         <attr name="card_spacing" format="dimension"/>
+        <attr name="scale_diff" format="float"/>
         <attr name="render_above" format="boolean"/>
+        <attr name="opacity_diff" format="float"/>
         <attr name="swipe_enabled" format="boolean"/>
+        <attr name="swipe_threshold" format="float"/>
         <attr name="preview_layout" format="reference"/>
+        <attr name="shadow" format="boolean"/>
     </declare-styleable>
 </resources>

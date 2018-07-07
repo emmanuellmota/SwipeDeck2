@@ -4,6 +4,7 @@ import com.daprlabs.aaron.swipedeck.SwipeDeck;
 import com.squareup.picasso.Picasso;
 
 import android.content.Context;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -57,6 +58,15 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
+            public void cardSwipedUp(long stableId) {
+                Log.i("MainActivity", "card was swiped up, position in adapter: " + stableId);
+            }
+
+            @Override
+            public void cardSwipedDown(long itemId) {
+            }
+
+            @Override
             public boolean isDragEnabled(long itemId) {
                 return dragCheckbox.isChecked();
             }
@@ -64,6 +74,7 @@ public class MainActivity extends AppCompatActivity {
 
         cardStack.setLeftImage(R.id.left_image);
         cardStack.setRightImage(R.id.right_image);
+        cardStack.setUpImage(R.id.up_image);
 
         Button btn = (Button) findViewById(R.id.button_left);
         btn.setOnClickListener(new View.OnClickListener() {
@@ -73,6 +84,7 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+
         Button btn2 = (Button) findViewById(R.id.button_right);
         btn2.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -85,9 +97,23 @@ public class MainActivity extends AppCompatActivity {
         btn3.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                testData.add("a sample string.");
-//                adapter.notifyDataSetChanged();
                 cardStack.unSwipeCard();
+            }
+        });
+
+        Button btn4 = (Button) findViewById(R.id.button_up);
+        btn4.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                cardStack.swipeTopCardUp(500);
+            }
+        });
+
+        Button btn5 = (Button) findViewById(R.id.button_down);
+        btn5.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                cardStack.swipeTopCardDown(500);
             }
         });
 
@@ -127,11 +153,12 @@ public class MainActivity extends AppCompatActivity {
                 // normally use a viewholder
                 v = inflater.inflate(R.layout.test_card2, parent, false);
             }
-            //((TextView) v.findViewById(R.id.textView2)).setText(data.get(position));
-            ImageView imageView = (ImageView) v.findViewById(R.id.offer_image);
-            Picasso.with(context).load(R.drawable.food).fit().centerCrop().into(imageView);
+
+            // ((TextView) v.findViewById(R.id.textView2)).setText(data.get(position));
+            // ImageView imageView = (ImageView) v.findViewById(R.id.offer_image);
+            // Picasso.with(context).load(R.drawable.food).fit().centerCrop().into(imageView);
             TextView textView = (TextView) v.findViewById(R.id.sample_text);
-            String item = (String)getItem(position);
+            final String item = (String)getItem(position);
             textView.setText(item);
 
             v.setOnClickListener(new View.OnClickListener() {

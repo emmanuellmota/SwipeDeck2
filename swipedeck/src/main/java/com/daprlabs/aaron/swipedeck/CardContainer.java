@@ -70,10 +70,23 @@ public class CardContainer {
 
     }
 
+    public void setDownImageResource(int leftImageResource) {
+        View left = view.findViewById(leftImageResource);
+        left.setAlpha(0);
+        swipeListener.setDownView(left);
+
+    }
+
     public void setRightImageResource(int rightImageResource) {
         View right = view.findViewById(rightImageResource);
         right.setAlpha(0);
         swipeListener.setRightView(right);
+    }
+
+    public void setUpImageResource(int upImageResource) {
+        View up = view.findViewById(upImageResource);
+        up.setAlpha(0);
+        swipeListener.setUpView(up);
     }
 
     public void setupSwipeListener() {
@@ -84,6 +97,7 @@ public class CardContainer {
                 parent.getPaddingTop(),
                 parent.ROTATION_DEGREES,
                 parent.OPACITY_END,
+                parent.SWIPE_THRESHOLD,
                 parent
         );
     }
@@ -104,12 +118,26 @@ public class CardContainer {
         return positionWithinAdapter;
     }
 
-    public void swipeCardLeft(int duration) {
+    // Swipe Card Finctions
+
+    public void swipeCardUp(int duration) {
         // Remember how long card would be animating
         swipeDuration = duration;
         // Disable touch events
         setSwipeEnabled(false);
+        swipeListener.swipeCardUp(duration);
+    }
+
+    public void swipeCardLeft(int duration) {
+        swipeDuration = duration;
+        setSwipeEnabled(false);
         swipeListener.swipeCardLeft(duration);
+    }
+
+    public void swipeCardDown(int duration) {
+        swipeDuration = duration;
+        setSwipeEnabled(false);
+        swipeListener.swipeCardDown(duration);
     }
 
     public void swipeCardRight(int duration) {

@@ -31,9 +31,13 @@ public class SwipeDeck extends FrameLayout {
     public float OPACITY_END;
     public float ROTATION_DEGREES;
     private float CARD_SPACING;
+    private float SCALE_DIFF;
+    private boolean SHADOW;
+    private float OPACITY_DIFF;
     public static int ANIMATION_DURATION = 200;
     public boolean RENDER_ABOVE;
     public boolean SWIPE_ENABLED;
+    public float SWIPE_THRESHOLD;
     private boolean mHasStableIds;
 
     private Adapter mAdapter;
@@ -42,8 +46,9 @@ public class SwipeDeck extends FrameLayout {
     private SwipeDeckCallback callback;
     private ArrayList<CardContainer> buffer = new ArrayList<>();
 
-
+    private int upImageResource;
     private int leftImageResource;
+    private int downImageResource;
     private int rightImageResource;
 
     private int adapterIndex = 0;
@@ -59,8 +64,12 @@ public class SwipeDeck extends FrameLayout {
         OPACITY_END = a.getFloat(R.styleable.SwipeDeck2_opacity_end, 0.33f);
         ROTATION_DEGREES = a.getFloat(R.styleable.SwipeDeck2_rotation_degrees, 15f);
         CARD_SPACING = a.getDimension(R.styleable.SwipeDeck2_card_spacing, 15f);
+        SCALE_DIFF = a.getFloat(R.styleable.SwipeDeck2_scale_diff, 0f);
+        SHADOW = a.getBoolean(R.styleable.SwipeDeck2_shadow, false);
+        OPACITY_DIFF = a.getFloat(R.styleable.SwipeDeck2_opacity_diff, 0f);
         RENDER_ABOVE = a.getBoolean(R.styleable.SwipeDeck2_render_above, true);
         SWIPE_ENABLED = a.getBoolean(R.styleable.SwipeDeck2_swipe_enabled, true);
+        SWIPE_THRESHOLD = a.getFloat(R.styleable.SwipeDeck2_swipe_threshold, 4f);
         previewLayoutId = a.getResourceId(R.styleable.SwipeDeck2_preview_layout, -1);
 
         deck = new Deck<>(new Deck.DeckEventListener() {
@@ -130,6 +139,7 @@ public class SwipeDeck extends FrameLayout {
                 view.setLayoutParams(params);
                 addViewInLayout(view, -1, params, true);
             }
+
             setZTranslations();
         }
     }
@@ -212,8 +222,14 @@ public class SwipeDeck extends FrameLayout {
 
             card.setPositionWithinAdapter(adapterIndex);
 
+            if (upImageResource != 0) {
+                card.setUpImageResource(upImageResource);
+            }
             if (leftImageResource != 0) {
                 card.setLeftImageResource(leftImageResource);
+            }
+            if (downImageResource != 0) {
+                card.setDownImageResource(downImageResource);
             }
             if (rightImageResource != 0) {
                 card.setRightImageResource(rightImageResource);
@@ -255,6 +271,9 @@ public class SwipeDeck extends FrameLayout {
             }
             if (rightImageResource != 0) {
                 card.setRightImageResource(rightImageResource);
+            }
+            if (upImageResource != 0) {
+                card.setUpImageResource(upImageResource);
             }
 
             card.setId(viewId);
@@ -311,14 +330,34 @@ public class SwipeDeck extends FrameLayout {
 
     protected void animateCardPosition(View card, int position) {
         float offset = (int) (position * CARD_SPACING);
+        float scale = (card.getMeasuredWidth() - (position * SCALE_DIFF)) / (float) card.getMeasuredWidth();
+        float opacity = (1 - (position * OPACITY_DIFF)) / 1;
+
         card.animate()
                 .setDuration(ANIMATION_DURATION)
                 .y(getPaddingTop() + offset)
-                .alpha(1.0f);
+                .scaleX(scale)
+                .scaleY(scale)
+                .alpha(opacity);
     }
 
     public void setCallback(SwipeDeckCallback callback) {
         this.callback = callback;
+    }
+
+    /**
+     * Swipe card to the up side.
+     *
+     * @param duration animation duration in milliseconds
+     */
+    public void swipeTopCardUp(int duration) {
+        if (deck.size() > 0) {
+            deck.get(0).swipeCardUp(duration);
+            if (callback != null) {
+                callback.cardSwipedUp(deck.get(0).getId());
+            }
+            deck.removeFront();
+        }
     }
 
     /**
@@ -331,6 +370,21 @@ public class SwipeDeck extends FrameLayout {
             deck.get(0).swipeCardLeft(duration);
             if (callback != null) {
                 callback.cardSwipedLeft(deck.get(0).getId());
+            }
+            deck.removeFront();
+        }
+    }
+
+    /**
+     * Swipe top card to the left side.
+     *
+     * @param duration animation duration in milliseconds
+     */
+    public void swipeTopCardDown(int duration) {
+        if (deck.size() > 0) {
+            deck.get(0).swipeCardDown(duration);
+            if (callback != null) {
+                callback.cardSwipedUp(deck.get(0).getId());
             }
             deck.removeFront();
         }
@@ -380,18 +434,25 @@ public class SwipeDeck extends FrameLayout {
         this.buffer.remove(container);
     }
 
-    public void setLeftImage(int imageResource) {
-        leftImageResource = imageResource;
+    public void setUpImage(int imageResource) {
+        upImageResource = imageResource;
     }
 
     public void setRightImage(int imageResource) {
         rightImageResource = imageResource;
     }
 
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    public void setDownImage(int imageResource) {
+        downImageResource = imageResource;
+    }
+
+    public void setLeftImage(int imageResource) {
+        leftImageResource = imageResource;
+    }
+
     private void setZTranslations() {
         //this is only needed to add shadows to cardviews on > lollipop
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        if (SHADOW && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             int count = getChildCount();
             for (int i = 0; i < count; ++i) {
                 getChildAt(i).setTranslationZ(i * 10);
@@ -403,6 +464,10 @@ public class SwipeDeck extends FrameLayout {
         void cardSwipedLeft(long itemId);
 
         void cardSwipedRight(long itemId);
+
+        void cardSwipedUp(long itemId);
+
+        void cardSwipedDown(long itemId);
 
         /**
          * Check whether we can start dragging view with provided id.
@@ -434,6 +499,18 @@ public class SwipeDeck extends FrameLayout {
         }
 
         @Override
+        public void cardSwipedUp(View card) {
+            Log.d(TAG, "card swiped up");
+            if (!(deck.getFront().getCard() == card)) {
+                Log.e("SWIPE ERROR: ", "card on top of deck not equal to card swiped");
+            }
+            deck.removeFront();
+            if (callback != null) {
+                callback.cardSwipedRight(viewId);
+            }
+        }
+
+        @Override
         public void cardSwipedRight(View card) {
             Log.d(TAG, "card swiped right");
             if (!(deck.getFront().getCard() == card)) {
@@ -443,6 +520,11 @@ public class SwipeDeck extends FrameLayout {
             if (callback != null) {
                 callback.cardSwipedRight(viewId);
             }
+        }
+
+        @Override
+        public void cardSwipedDown(View card) {
+            // TODO
         }
 
         @Override
@@ -457,19 +539,15 @@ public class SwipeDeck extends FrameLayout {
 
         @Override
         public void cardOffScreen(View card) {
-
-        }
-
-        @Override
-        public void cardActionDown() {
-
         }
 
         @Override
         public void cardActionUp() {
-
         }
 
+        @Override
+        public void cardActionDown() {
+        }
     }
 }
 

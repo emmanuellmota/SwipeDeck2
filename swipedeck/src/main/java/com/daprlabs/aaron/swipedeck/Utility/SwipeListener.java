@@ -315,7 +315,7 @@ public class SwipeListener implements View.OnTouchListener {
     private ViewPropertyAnimator animateOffScreenRight(int duration) {
         return card.animate()
                 .setDuration(duration)
-                .x(parent.getWidth() * 2)
+                .x(parent.getWidth())
                 .y(0)
                 .rotation(30);
     }

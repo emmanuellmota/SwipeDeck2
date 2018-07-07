@@ -24,7 +24,7 @@ public class SwipeListener implements View.OnTouchListener {
     private int mActivePointerId;
     private float initialXPress;
     private float initialYPress;
-    private ViewGroup parent;
+    private SwipeDeck parent;
 
     private View card;
     private SwipeCallback callback;
@@ -56,6 +56,8 @@ public class SwipeListener implements View.OnTouchListener {
         switch (event.getAction() & MotionEvent.ACTION_MASK) {
 
             case MotionEvent.ACTION_DOWN:
+                parent.getParent().requestDisallowInterceptTouchEvent(true);
+
                 click = true;
                 //gesture has begun
                 float x;
@@ -78,6 +80,8 @@ public class SwipeListener implements View.OnTouchListener {
 
             case MotionEvent.ACTION_MOVE:
                 //gesture is in progress
+                parent.isSwapping = true;
+                parent.getParent().requestDisallowInterceptTouchEvent(false);
 
                 final int pointerIndex = event.findPointerIndex(mActivePointerId);
                 //Log.i("pointer index: " , Integer.toString(pointerIndex));
@@ -164,6 +168,12 @@ public class SwipeListener implements View.OnTouchListener {
                 }
                 //if(click) return false;
 
+                parent.isSwapping = false;
+
+                break;
+
+            case MotionEvent.ACTION_CANCEL:
+                parent.getParent().requestDisallowInterceptTouchEvent(false);
                 break;
 
             default:
@@ -180,7 +190,6 @@ public class SwipeListener implements View.OnTouchListener {
 
                         @Override
                         public void onAnimationStart(Animator animation) {
-
                         }
 
                         @Override
@@ -190,7 +199,6 @@ public class SwipeListener implements View.OnTouchListener {
 
                         @Override
                         public void onAnimationCancel(Animator animation) {
-                            Log.d("SwipeListener", "Animation Cancelled");
                         }
 
                         @Override
@@ -205,7 +213,6 @@ public class SwipeListener implements View.OnTouchListener {
 
                         @Override
                         public void onAnimationStart(Animator animation) {
-
                         }
 
                         @Override
@@ -215,12 +222,10 @@ public class SwipeListener implements View.OnTouchListener {
 
                         @Override
                         public void onAnimationCancel(Animator animation) {
-
                         }
 
                         @Override
                         public void onAnimationRepeat(Animator animation) {
-
                         }
                     });
             callback.cardSwipedRight(card);
@@ -231,7 +236,6 @@ public class SwipeListener implements View.OnTouchListener {
 
                         @Override
                         public void onAnimationStart(Animator animation) {
-
                         }
 
                         @Override
@@ -241,12 +245,10 @@ public class SwipeListener implements View.OnTouchListener {
 
                         @Override
                         public void onAnimationCancel(Animator animation) {
-
                         }
 
                         @Override
                         public void onAnimationRepeat(Animator animation) {
-
                         }
                     });
             callback.cardSwipedUp(card);

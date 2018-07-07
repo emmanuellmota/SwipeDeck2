@@ -27,6 +27,7 @@ public class SwipeDeck extends FrameLayout {
 
     private static final String TAG = "SwipeDeck";
     private final int previewLayoutId;
+
     private int NUMBER_OF_SIMULTANEOUS_CARDS;
     public float OPACITY_END;
     public float ROTATION_DEGREES;
@@ -39,6 +40,8 @@ public class SwipeDeck extends FrameLayout {
     public boolean SWIPE_ENABLED;
     public float SWIPE_THRESHOLD;
     private boolean mHasStableIds;
+
+    public boolean isSwapping = false;
 
     private Adapter mAdapter;
     private DataSetObserver observer;
